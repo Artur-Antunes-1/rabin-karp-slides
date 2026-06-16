@@ -7,6 +7,8 @@ complexidade de tempo, com medições reais comparando **C** e **Python**.
 
 **https://artur-antunes-1.github.io/rabin-karp-slides/**
 
+📄 **Baixar em PDF:** [rabin-karp-slides.pdf](rabin-karp-slides.pdf)
+
 ### Como navegar
 - Setas `←` `→` ou barra de espaço para avançar/voltar
 - `F` para tela cheia · `Home` / `End` para ir ao início/fim

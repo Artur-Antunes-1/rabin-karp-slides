@@ -142,13 +142,16 @@ tr .em{color:var(--red);font-weight:700}
 @media (prefers-reduced-motion:reduce){.slide.active *{animation:none!important}}
 ::selection{background:var(--lime);color:#0a0d13}
 
-/* print → PDF (paisagem) */
+/* print → PDF (paisagem 16:9, 1 slide por página) */
+@page{size:13.333in 7.5in;margin:0}
 @media print{
-  html,body{overflow:visible;height:auto}
+  *{-webkit-print-color-adjust:exact!important;print-color-adjust:exact!important}
+  html,body{overflow:visible;height:auto;background:#0a0d13}
   body::before,.bar,.counter,.chrome,.nav,.hint{display:none!important}
   #deck{position:static}
-  .slide{position:relative;opacity:1!important;visibility:visible!important;height:100vh;page-break-after:always;break-after:page}
-  .slide.active .wrap>*,.slide.active .panel>*{animation:none!important}
+  .slide{position:relative;opacity:1!important;visibility:visible!important;width:13.333in;height:7.5in;background:#0a0d13;page-break-after:always;break-after:page;overflow:hidden}
+  .slide:last-child{page-break-after:auto}
+  .slide .wrap>*,.slide .panel>*{animation:none!important;opacity:1!important;transform:none!important}
 }
 </style>
 </head>
