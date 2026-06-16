@@ -1,0 +1,118 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="900" viewBox="0 0 1600 900" role="img" aria-labelledby="title desc">
+  <title id="title">Fluxograma do algoritmo Rabin-Karp</title>
+  <desc id="desc">Fluxograma com texto exato do algoritmo Rabin-Karp.</desc>
+  <defs>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#1C2733" stroke-width="1" opacity="0.45"/>
+    </pattern>
+    <filter id="glow" x="-30%" y="-30%" width="160%" height="160%">
+      <feGaussianBlur stdDeviation="4" result="blur"/>
+      <feMerge>
+        <feMergeNode in="blur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <marker id="arrow" markerWidth="12" markerHeight="12" refX="10" refY="6" orient="auto" markerUnits="strokeWidth">
+      <path d="M2,2 L10,6 L2,10 Z" fill="#57D6E6"/>
+    </marker>
+    <style>
+      .bg { fill: #0A0D13; }
+      .grid { fill: url(#grid); opacity: 0.7; }
+      .node { fill: #0E141D; stroke: #C4F23F; stroke-width: 2.6; filter: url(#glow); }
+      .decision { fill: #101A22; stroke: #57D6E6; stroke-width: 2.6; filter: url(#glow); }
+      .end { fill: #12151B; stroke: #C4F23F; stroke-width: 2.6; filter: url(#glow); }
+      .line { fill: none; stroke: #57D6E6; stroke-width: 2.4; marker-end: url(#arrow); opacity: 0.95; }
+      .label { fill: #EAEEF5; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, monospace; font-size: 25px; font-weight: 650; text-anchor: middle; dominant-baseline: middle; }
+      .small { fill: #EAEEF5; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, monospace; font-size: 20px; font-weight: 650; text-anchor: middle; dominant-baseline: middle; }
+      .edge { fill: #C4F23F; font-family: "JetBrains Mono", "Cascadia Mono", Consolas, monospace; font-size: 20px; font-weight: 700; text-anchor: middle; dominant-baseline: middle; }
+      .grain { opacity: 0.06; mix-blend-mode: screen; }
+    </style>
+  </defs>
+
+  <rect class="bg" width="1600" height="900"/>
+  <rect class="grid" width="1600" height="900"/>
+
+  <g opacity="0.35">
+    <path d="M80 760 C320 620, 410 690, 610 555 C790 435, 990 460, 1195 310 C1330 215, 1435 195, 1520 150" fill="none" stroke="#C4F23F" stroke-width="1.3"/>
+    <path d="M120 120 C290 210, 360 170, 510 250 C780 395, 1050 230, 1470 380" fill="none" stroke="#57D6E6" stroke-width="1.2"/>
+  </g>
+
+  <!-- Edges -->
+  <path class="line" d="M800 104 L800 126"/>
+  <path class="line" d="M670 172 L500 172"/>
+  <text class="edge" x="585" y="146">sim</text>
+  <path class="line" d="M800 198 L800 232"/>
+  <text class="edge" x="837" y="216">nao</text>
+  <path class="line" d="M800 304 L800 338"/>
+  <path class="line" d="M800 394 L800 410"/>
+  <path class="line" d="M800 491 L800 573"/>
+  <text class="edge" x="835" y="530">nao</text>
+  <path class="line" d="M910 450 L923 450"/>
+  <text class="edge" x="944" y="423">sim</text>
+  <path class="line" d="M1075 495 L1075 550"/>
+  <text class="edge" x="1115" y="526">sim</text>
+  <path class="line" d="M1000 480 C940 525, 900 548, 840 580"/>
+  <text class="edge" x="933" y="540">nao</text>
+  <path class="line" d="M1040 596 C980 608, 917 617, 920 617"/>
+  <path class="line" d="M800 662 L800 716"/>
+  <text class="edge" x="835" y="692">sim</text>
+  <path class="line" d="M920 620 L1136 620 L1136 710"/>
+  <text class="edge" x="1000" y="594">nao</text>
+  <path class="line" d="M510 756 L330 756 L330 450 L690 450"/>
+
+  <!-- Nodes -->
+  <rect class="end" x="575" y="42" width="450" height="62" rx="31"/>
+  <text class="small" x="800" y="64">
+    <tspan x="800" dy="0">Inicio: recebe T, P, base B,</tspan>
+    <tspan x="800" dy="24">modulo Q</tspan>
+  </text>
+
+  <path class="decision" d="M800 126 L930 172 L800 218 L670 172 Z"/>
+  <text class="label" x="800" y="172">m = 0 ou m &gt; n ?</text>
+
+  <rect class="end" x="220" y="141" width="280" height="62" rx="31"/>
+  <text class="small" x="360" y="160">
+    <tspan x="360" dy="0">Retorna conjunto</tspan>
+    <tspan x="360" dy="24">vazio</tspan>
+  </text>
+
+  <rect class="node" x="520" y="232" width="560" height="72" rx="10"/>
+  <text class="small" x="800" y="256">
+    <tspan x="800" dy="0">Pre-processa: high, hp = hash(P),</tspan>
+    <tspan x="800" dy="24">ht = hash(T[0..m-1])</tspan>
+  </text>
+
+  <rect class="node" x="700" y="338" width="200" height="56" rx="10"/>
+  <text class="label" x="800" y="366">i = 0</text>
+
+  <path class="decision" d="M800 410 L910 450 L800 491 L690 450 Z"/>
+  <text class="label" x="800" y="450">hp == ht ?</text>
+
+  <path class="decision" d="M1075 405 L1225 450 L1075 495 L925 450 Z"/>
+  <text class="small" x="1075" y="438">
+    <tspan x="1075" dy="0">janela T[i..i+m-1]</tspan>
+    <tspan x="1075" dy="24">== P ?</tspan>
+  </text>
+
+  <rect class="node" x="1040" y="550" width="360" height="62" rx="10"/>
+  <text class="small" x="1220" y="569">
+    <tspan x="1220" dy="0">Registra ocorrencia</tspan>
+    <tspan x="1220" dy="24">na posicao i</tspan>
+  </text>
+
+  <path class="decision" d="M800 573 L920 620 L800 667 L680 620 Z"/>
+  <text class="label" x="800" y="620">i &lt; n - m ?</text>
+
+  <rect class="node" x="510" y="716" width="580" height="72" rx="10"/>
+  <text class="small" x="800" y="740">
+    <tspan x="800" dy="0">Rola o hash em O(1);</tspan>
+    <tspan x="800" dy="24">i = i + 1</tspan>
+  </text>
+
+  <rect class="end" x="1136" y="710" width="180" height="62" rx="31"/>
+  <text class="label" x="1226" y="741">Fim</text>
+
+  <g class="grain">
+    <rect width="1600" height="900" fill="#FFFFFF"/>
+  </g>
+</svg>

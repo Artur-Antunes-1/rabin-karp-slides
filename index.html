@@ -1,0 +1,607 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Rabin–Karp · Teoria da Computação</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0a0d13; --bg-soft:#0f1420; --card:#0e1320;
+  --fg:#eaeef5; --muted:#939db2;
+  --lime:#c4f23f; --cyan:#57d6e6;
+  --green:#5ad17a; --red:#ff6b5e;
+  --line:rgba(255,255,255,.10);
+  --head:'Bricolage Grotesque',system-ui,Segoe UI,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,Consolas,monospace;
+}
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden;background:var(--bg);color:var(--fg);font-family:var(--head)}
+body{
+  background:
+    radial-gradient(900px 600px at 12% 8%, rgba(196,242,63,.10), transparent 60%),
+    radial-gradient(800px 600px at 88% 92%, rgba(87,214,230,.10), transparent 60%),
+    linear-gradient(180deg,#0a0d13 0%,#0c1018 100%);
+}
+body::before{
+  content:"";position:fixed;inset:0;pointer-events:none;z-index:0;opacity:.5;
+  background-image:
+    linear-gradient(rgba(255,255,255,.025) 1px,transparent 1px),
+    linear-gradient(90deg,rgba(255,255,255,.025) 1px,transparent 1px);
+  background-size:46px 46px;
+  -webkit-mask-image:radial-gradient(circle at 50% 45%,#000 30%,transparent 85%);
+  mask-image:radial-gradient(circle at 50% 45%,#000 30%,transparent 85%);
+}
+
+/* ---------- deck / slides ---------- */
+#deck{position:fixed;inset:0;z-index:1}
+.slide{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;
+  padding:6vh 7vw;opacity:0;visibility:hidden;transition:opacity .5s ease;overflow:hidden}
+.slide.active{opacity:1;visibility:visible}
+.wrap{width:100%;max-width:1180px;margin:0 auto}
+.slide.center .wrap{margin:0 auto}
+
+/* bg-image slides */
+.slide.bg::before{content:"";position:absolute;inset:0;background-image:var(--img);
+  background-size:cover;background-position:center;z-index:0}
+.slide.bg::after{content:"";position:absolute;inset:0;
+  background:linear-gradient(rgba(8,10,15,.55),rgba(8,10,15,.78));z-index:0}
+.slide.bg .wrap{position:relative;z-index:1}
+
+/* ---------- typography ---------- */
+h1{font-family:var(--head);font-weight:800;font-size:clamp(2.8rem,6vw,4.4rem);line-height:.96;letter-spacing:-.03em;margin:0}
+h2{font-family:var(--head);font-weight:800;font-size:clamp(1.55rem,3.3vw,2.15rem);line-height:1.05;letter-spacing:-.02em;margin:.1em 0 .55em;color:#fff}
+p,li{font-size:clamp(1rem,1.5vw,1.18rem);line-height:1.5;color:var(--fg)}
+strong{color:var(--lime);font-weight:700}
+em{color:var(--cyan);font-style:normal}
+.kicker{font-family:var(--mono);font-weight:500;font-size:.8rem;letter-spacing:.28em;text-transform:uppercase;color:var(--lime);margin:0 0 1rem;display:flex;align-items:center;gap:.7rem}
+.kicker::before{content:"";width:26px;height:2px;background:var(--lime);display:inline-block}
+.subtitle{color:var(--muted);font-size:clamp(1.1rem,2vw,1.4rem);font-weight:400;margin:.7rem 0 0;max-width:34ch}
+
+/* lists */
+ul{list-style:none;margin:0;padding:0}
+ul li{position:relative;padding-left:1.6rem;margin:.5rem 0}
+ul li::before{content:"›";position:absolute;left:0;top:-.02em;color:var(--lime);font-family:var(--mono);font-weight:700}
+.small{font-size:.92rem !important;color:var(--muted) !important}
+code{font-family:var(--mono);background:rgba(87,214,230,.12);color:var(--cyan);padding:.05em .35em;border-radius:5px;font-size:.92em}
+
+/* panel */
+.panel{background:linear-gradient(135deg, rgba(10,13,19,.88), rgba(10,13,19,.62));
+  -webkit-backdrop-filter:blur(3px);backdrop-filter:blur(3px);
+  border:1px solid var(--line);border-radius:20px;padding:2rem 2.3rem;box-shadow:0 30px 80px rgba(0,0,0,.5)}
+
+/* title meta */
+.meta{display:flex;flex-wrap:wrap;gap:.5rem 1.4rem;margin-top:1.8rem;align-items:center}
+.meta .name{font-weight:700;font-size:1.1rem}
+.meta .name::before{content:"◆";color:var(--lime);font-size:.7em;margin-right:.5rem;vertical-align:.12em}
+.meta .prof{font-family:var(--mono);font-size:.82rem;color:var(--muted);border-left:1px solid var(--line);padding-left:1.2rem}
+
+/* scan motif */
+.scan{position:relative;display:inline-block;font-family:var(--mono);font-size:clamp(1.3rem,2.4vw,1.85rem);color:var(--muted);white-space:nowrap;margin:1.8rem 0 .4rem}
+.scan b{display:inline-block;width:1.5ch;text-align:center;font-weight:400}
+.scan .win{position:absolute;top:-.32em;left:0;height:1.62em;width:calc(4*1.5ch);border:2px solid var(--lime);border-radius:8px;background:rgba(196,242,63,.10);box-shadow:0 0 32px rgba(196,242,63,.30);animation:win 6.5s cubic-bezier(.65,0,.35,1) infinite}
+.scan .tag{font-family:var(--mono);font-size:.8rem;color:var(--lime);letter-spacing:.1em;display:block;margin-top:.7rem}
+@keyframes win{0%,10%{transform:translateX(0)}22%,32%{transform:translateX(calc(1*1.5ch))}44%,54%{transform:translateX(calc(3*1.5ch))}66%,76%{transform:translateX(calc(5*1.5ch))}88%,100%{transform:translateX(0)}}
+
+/* divider */
+.divider h1{font-size:clamp(3rem,7vw,5rem);text-shadow:0 4px 40px rgba(0,0,0,.7)}
+
+/* cards */
+.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem;margin:.3rem 0 1rem}
+.card{background:linear-gradient(180deg,var(--card),#0b0f18);border:1px solid var(--line);border-radius:14px;padding:1.05rem 1.1rem;border-top:3px solid var(--c,#888)}
+.card .ct{font-family:var(--mono);font-size:.76rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+.card .big{font-family:var(--mono);font-weight:700;font-size:clamp(1.2rem,2.4vw,1.5rem);color:var(--c);margin:.35rem 0 .2rem}
+.card .ds{font-size:.84rem;color:var(--muted);line-height:1.4}
+.c-best{--c:#5ad17a}.c-avg{--c:#57d6e6}.c-worst{--c:#ff6b5e}
+
+/* tables */
+table{font-family:var(--mono);font-size:clamp(.82rem,1.5vw,.98rem);border-collapse:collapse;margin:.6rem 0;width:100%}
+th{color:var(--lime);text-transform:uppercase;letter-spacing:.08em;font-size:.72rem;border:none;border-bottom:1px solid var(--line);padding:.55rem .9rem;text-align:left}
+td{border:none;border-bottom:1px solid rgba(255,255,255,.06);padding:.55rem .9rem;color:var(--fg)}
+td.num,th.num{text-align:right}
+tr .em{color:var(--red);font-weight:700}
+
+/* images & charts */
+.art{display:block;margin:.2rem auto 0;border-radius:14px;max-height:48vh;max-width:100%;border:1px solid var(--line);box-shadow:0 24px 60px rgba(0,0,0,.5)}
+.chart{display:block;margin:.2rem auto 0;width:100%;max-width:920px;max-height:52vh}
+.cap{font-family:var(--mono);font-size:clamp(.74rem,1.3vw,.84rem);color:var(--muted);margin:.8rem 0 0;line-height:1.5}
+.chips{display:flex;flex-wrap:wrap;gap:.5rem;margin-top:1rem}
+.chip{font-family:var(--mono);font-size:.76rem;color:var(--cyan);background:rgba(87,214,230,.10);border:1px solid rgba(87,214,230,.25);border-radius:999px;padding:.28rem .8rem}
+
+/* two-column */
+.two{display:grid;grid-template-columns:1.05fr .95fr;gap:1.6rem;align-items:center}
+@media(max-width:900px){.two{grid-template-columns:1fr}}
+
+/* chrome */
+.bar{position:fixed;top:0;left:0;height:3px;width:100%;z-index:60;pointer-events:none}
+.bar>i{display:block;height:100%;width:100%;transform-origin:left;transform:scaleX(0);background:var(--lime);box-shadow:0 0 12px var(--lime);transition:transform .4s}
+.counter{position:fixed;right:24px;bottom:16px;font-family:var(--mono);color:var(--muted);font-size:.8rem;z-index:40}
+.chrome{position:fixed;left:26px;bottom:14px;z-index:40;display:flex;align-items:center;gap:.7rem;font-family:var(--mono);font-size:.78rem;color:var(--muted);letter-spacing:.05em}
+.chrome .b{color:var(--fg);font-weight:700}
+.chrome .dot{width:6px;height:6px;border-radius:50%;background:var(--lime);box-shadow:0 0 10px var(--lime)}
+.nav{position:fixed;top:50%;transform:translateY(-50%);z-index:50;background:rgba(255,255,255,.04);border:1px solid var(--line);color:var(--muted);width:44px;height:44px;border-radius:50%;font-size:1.4rem;cursor:pointer;display:grid;place-items:center;transition:.2s;font-family:var(--head)}
+.nav:hover{color:var(--lime);border-color:var(--lime)}
+.nav.prev{left:18px}.nav.next{right:18px}
+.hint{position:fixed;left:50%;bottom:14px;transform:translateX(-50%);z-index:40;font-family:var(--mono);font-size:.72rem;color:rgba(147,157,178,.55)}
+
+/* entrance */
+.slide.active .wrap>*,.slide.active .panel>*{animation:rise .55s cubic-bezier(.2,.7,.2,1) both}
+.slide.active .wrap>*:nth-child(2),.slide.active .panel>*:nth-child(2){animation-delay:.07s}
+.slide.active .wrap>*:nth-child(3),.slide.active .panel>*:nth-child(3){animation-delay:.14s}
+.slide.active .wrap>*:nth-child(4),.slide.active .panel>*:nth-child(4){animation-delay:.21s}
+.slide.active .wrap>*:nth-child(5),.slide.active .panel>*:nth-child(5){animation-delay:.28s}
+.slide.active .wrap>*:nth-child(6),.slide.active .panel>*:nth-child(6){animation-delay:.35s}
+@keyframes rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@media (prefers-reduced-motion:reduce){.slide.active *{animation:none!important}}
+::selection{background:var(--lime);color:#0a0d13}
+
+/* print → PDF (paisagem) */
+@media print{
+  html,body{overflow:visible;height:auto}
+  body::before,.bar,.counter,.chrome,.nav,.hint{display:none!important}
+  #deck{position:static}
+  .slide{position:relative;opacity:1!important;visibility:visible!important;height:100vh;page-break-after:always;break-after:page}
+  .slide.active .wrap>*,.slide.active .panel>*{animation:none!important}
+}
+</style>
+</head>
+<body>
+<div class="bar"><i></i></div>
+<div id="deck">
+
+  <!-- 1 · TÍTULO -->
+  <section class="slide center bg active" style="--img:url('assets/b1-background-titulo.png')">
+    <div class="wrap">
+      <p class="kicker">Teoria da Computação · Análise de Algoritmos</p>
+      <h1>Rabin&ndash;Karp</h1>
+      <p class="subtitle">Busca de padrão em texto &amp; análise de complexidade de tempo</p>
+      <div class="scan" aria-hidden="true">
+        <b>a</b><b>b</b><b>r</b><b>a</b><b>c</b><b>a</b><b>d</b><b>a</b><b>b</b><b>r</b><b>a</b>
+        <span class="win"></span>
+        <span class="tag">// janela deslizante · rolling hash O(1)</span>
+      </div>
+      <div class="meta">
+        <span class="name">Artur Antunes</span>
+        <span class="name">Ricardo Machado</span>
+        <span class="name">Victor Tien</span>
+        <span class="prof">Prof. Daniel Bezerra · Jun/2026</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 2 · ROTEIRO -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">Roteiro</p>
+      <h2>O que vamos ver</h2>
+      <div class="two">
+        <ul>
+          <li>Descrição do projeto</li>
+          <li>O algoritmo: <em>hash</em> + janela deslizante</li>
+          <li>Complexidade: <strong>O, Ω, Θ</strong></li>
+          <li>Aplicabilidade e limitações</li>
+        </ul>
+        <ul>
+          <li>Metodologia das medições</li>
+          <li>Resultados: <strong>C × Python</strong></li>
+          <li>Reflexão: <em>P, NP</em></li>
+          <li>Conclusão</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 3 · DESCRIÇÃO DO PROJETO -->
+  <section class="slide bg" style="--img:url('assets/b4-textura-fundo.png')">
+    <div class="wrap"><div class="panel">
+      <p class="kicker">01 — Descrição do projeto</p>
+      <h2>Relacionar teoria e prática</h2>
+      <ul>
+        <li>Dado um texto <code>T</code> (tamanho n) e um padrão <code>P</code> (tamanho m), contar <strong>todas</strong> as ocorrências de P em T.</li>
+        <li>Objetivo: ligar a <strong>análise assintótica</strong> a <strong>medições reais</strong> de tempo.</li>
+        <li>Duas linguagens: <em>Python</em> (interpretada) × <em>C</em> (compilada).</li>
+        <li><strong>540 medições</strong> brutas: 2 linguagens × 3 cenários × 3 tamanhos × 30 rodadas.</li>
+      </ul>
+    </div></div>
+  </section>
+
+  <!-- 4 · O ALGORITMO / ROLLING HASH -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">02 — O algoritmo</p>
+      <h2>Hash + janela deslizante</h2>
+      <div class="two">
+        <ul>
+          <li>Compara <em>hashes</em> em vez de caractere a caractere.</li>
+          <li><strong>Rolling hash</strong>: ao deslizar a janela, sai o caractere da esquerda e entra o da direita — atualização em <strong>O(1)</strong>.</li>
+          <li>Parâmetros: <code>BASE = 256</code>, <code>MOD = 1.000.000.007</code>.</li>
+        </ul>
+        <img class="art" src="assets/a1-rolling-hash.png" alt="Janela deslizante (rolling hash)">
+      </div>
+    </div>
+  </section>
+
+  <!-- 5 · FORÇA BRUTA × RK -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">Intuição</p>
+      <h2>Força bruta × Rabin&ndash;Karp</h2>
+      <img class="art" src="assets/a3-forca-bruta-vs-rabin-karp.png" alt="Comparação força bruta vs Rabin-Karp">
+      <p class="cap">Força bruta compara tudo (muitas falhas) → O(n·m). RK compara <em>hashes</em> e só verifica no acerto.</p>
+    </div>
+  </section>
+
+  <!-- 6 · COLISÕES -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">03 — Por que verificar?</p>
+      <h2>Colisões (spurious hits)</h2>
+      <img class="art" src="assets/a4-colisao-spurious-hit.png" alt="Colisão de hash">
+      <p class="cap">Hashes iguais <em>não</em> garantem strings iguais. No acerto de hash, confirmamos caractere a caractere, por isso a verificação exata continua necessária.</p>
+    </div>
+  </section>
+
+  <!-- 7 · FLUXO -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">04 — Fluxo</p>
+      <h2>O algoritmo em um diagrama</h2>
+      <img class="art" src="assets/a2-fluxograma-exato.svg" alt="Fluxograma do Rabin-Karp" style="background:#0a0d13;max-height:50vh">
+      <p class="cap">Rolagem: <code>h ← ((h − T[i]·B^(m-1))·B + T[i+m]) mod Q</code> a cada passo.</p>
+    </div>
+  </section>
+
+  <!-- 8 · COMPLEXIDADE -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">05 — Complexidade</p>
+      <h2>Três casos, dois limites</h2>
+      <div class="cards">
+        <div class="card c-best"><div class="ct">Melhor caso</div><div class="big">Θ(n+m)</div><div class="ds">T="aaa…", P="bbb…" — hash quase nunca coincide; 0 verificações.</div></div>
+        <div class="card c-avg"><div class="ct">Caso médio</div><div class="big">Θ(n+m)</div><div class="ds">Entrada aleatória — colisões ≈ 0. <em>Coincide com o melhor caso.</em></div></div>
+        <div class="card c-worst"><div class="ct">Pior caso</div><div class="big">O(n·m)</div><div class="ds">T="aaa…", P="aaa…" — toda janela exige verificação.</div></div>
+      </div>
+      <p class="small">Big-O: O(n·m) · Big-Ω: Ω(n+m). Com <strong>m fixo (=16)</strong>, o pior caso cresce ~linear em n (constante maior); o termo <em>quadrático</em> só aparece quando m cresce junto com n.</p>
+    </div>
+  </section>
+
+  <!-- 9 · LINEAR × QUADRÁTICO -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">As duas classes</p>
+      <h2>Linear × quadrático</h2>
+      <img class="art" src="assets/a6-curvas-complexidade.png" alt="Curvas Theta(n) e Theta(n ao quadrado)">
+      <p class="cap">Θ(n+m) cresce linear; o limite O(n·m) vira <em>Θ(n²)</em> quando m ∝ n. Neste experimento <strong>m = 16</strong> (fixo) → observamos o regime linear.</p>
+    </div>
+  </section>
+
+  <!-- 10 · APLICABILIDADE -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">06 — Aplicabilidade</p>
+      <h2>Onde usar (e onde não)</h2>
+      <div class="two">
+        <ul>
+          <li><strong>Útil:</strong> busca em textos longos, logs, documentos e sequências biológicas.</li>
+          <li>Brilha com <strong>múltiplos padrões</strong> e <em>fingerprinting</em> (detecção de plágio/duplicatas).</li>
+          <li>Hash rolante evita recalcular janelas sobrepostas.</li>
+        </ul>
+        <ul>
+          <li><strong>Limitações:</strong> colisões (resolvidas pela verificação exata).</li>
+          <li>Resolve só <em>busca exata</em>; aproximada exige outras técnicas.</li>
+          <li>Pior caso O(n·m) — pior que os O(n+m) <em>garantidos</em> de KMP/Boyer–Moore.</li>
+        </ul>
+      </div>
+    </div>
+  </section>
+
+  <!-- 11 · DIVISÓRIA -->
+  <section class="slide center divider bg" style="--img:url('assets/b2-background-divisoria.png')">
+    <div class="wrap">
+      <p class="kicker">Parte II</p>
+      <h1>Resultados</h1>
+      <p class="subtitle">Medições reais · C × Python · aderência teórica</p>
+    </div>
+  </section>
+
+  <!-- 12 · METODOLOGIA -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">07 — Metodologia</p>
+      <h2>Como medimos</h2>
+      <ul>
+        <li>Três tamanhos: <strong>n = 2.000 / 20.000 / 100.000</strong>, com padrão <strong>m = 16</strong> fixo.</li>
+        <li>Três cenários: <em>melhor</em>, <em>médio</em> e <em>pior</em> caso.</li>
+        <li><strong>30 rodadas</strong> por combinação → 540 medições; mede-se só a função de busca.</li>
+      </ul>
+      <div class="chips">
+        <span class="chip">C · gcc -O2 · QueryPerformanceCounter</span>
+        <span class="chip">Python 3 · perf_counter()</span>
+        <span class="chip">Intel i7-7500U · 20 GB · Windows 10</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- 13 · OCORRÊNCIAS -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">08 — Validação</p>
+      <h2>As ocorrências confirmam os cenários</h2>
+      <table>
+        <thead><tr><th>Cenário</th><th class="num">n = 2.000</th><th class="num">n = 20.000</th><th class="num">n = 100.000</th></tr></thead>
+        <tbody>
+          <tr><td>Melhor</td><td class="num">0</td><td class="num">0</td><td class="num">0</td></tr>
+          <tr><td>Pior</td><td class="num">1.985</td><td class="num">19.985</td><td class="num">99.985</td></tr>
+        </tbody>
+      </table>
+      <p class="cap">Melhor caso nunca casa (0 ocorrências). Pior caso casa em quase toda janela: exatamente <strong>n − m + 1</strong>. Caso médio usa texto pseudoaleatório, com pouquíssimas ocorrências.</p>
+    </div>
+  </section>
+
+  <!-- 14 · TEMPOS RESUMIDOS -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">09 — Tempos médios</p>
+      <h2>Resumo em n = 100.000 (ms · 30 rodadas)</h2>
+      <table>
+        <thead><tr><th>Cenário</th><th class="num">C (ms)</th><th class="num">Python (ms)</th><th class="num">Python / C</th></tr></thead>
+        <tbody>
+          <tr><td>Melhor</td><td class="num">1,35</td><td class="num">74,8</td><td class="num">55×</td></tr>
+          <tr><td>Médio</td><td class="num">1,38</td><td class="num">59,7</td><td class="num">43×</td></tr>
+          <tr><td>Pior</td><td class="num">1,68</td><td class="num em">302,4</td><td class="num em">180×</td></tr>
+        </tbody>
+      </table>
+      <p class="cap">C é dezenas de vezes mais rápido. No pior caso a diferença chega a <strong>~180×</strong>: a verificação caractere a caractere domina e, em Python, é cara.</p>
+    </div>
+  </section>
+
+  <!-- 15 · GRÁFICO PYTHON -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">10 — Python</p>
+      <h2>Tempo × tamanho — Python</h2>
+      <svg id="chart-python" class="chart" viewBox="0 0 900 470" role="img" aria-label="Tempos do Rabin-Karp em Python"></svg>
+      <p class="cap">Crescimento ~linear em n (m fixo). Pior caso bem acima: verificação repetida em código interpretado.</p>
+    </div>
+  </section>
+
+  <!-- 16 · GRÁFICO C -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">11 — C</p>
+      <h2>Tempo × tamanho — C</h2>
+      <svg id="chart-c" class="chart" viewBox="0 0 900 470" role="img" aria-label="Tempos do Rabin-Karp em C"></svg>
+      <p class="cap">Mesma tendência, tempos ~50× menores. Pior caso só um pouco acima: a verificação nativa é barata.</p>
+    </div>
+  </section>
+
+  <!-- 17 · COMPARAÇÃO GERAL -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">12 — Visão geral</p>
+      <h2>C × Python — todos os cenários</h2>
+      <svg id="chart-all" class="chart" viewBox="0 0 900 470" role="img" aria-label="Comparação geral em escala log-log"></svg>
+      <p class="cap">Escala log–log. Duas faixas nítidas: <em>Python</em> (acima) e <em>C</em> (abaixo). Mesma inclinação ⇒ mesma classe de crescimento; muda a <strong>constante</strong>.</p>
+    </div>
+  </section>
+
+  <!-- 18 · SPEEDUP -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">13 — C × Python</p>
+      <h2>Quantas vezes C é mais rápido</h2>
+      <svg id="chart-speedup" class="chart" viewBox="0 0 900 470" role="img" aria-label="Speedup de C sobre Python"></svg>
+      <p class="cap"><strong>~40–60×</strong> nos casos melhor/médio; no pior caso sobe para <strong>138–180×</strong>, porque a verificação domina e o laço puro de Python é caro.</p>
+    </div>
+  </section>
+
+  <!-- 19 · P/NP -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">14 — Reflexão</p>
+      <h2>Onde isso vive em P vs NP</h2>
+      <ul>
+        <li>Busca exata ∈ <strong>P</strong>: tempo polinomial (esperado O(n+m), pior O(n·m)).</li>
+        <li>Versão decisória ("existe ocorrência?") ∈ P ⊆ <strong>NP</strong> — certificado = posição, verificada em O(m).</li>
+        <li><strong>Não</strong> é NP-completa (senão implicaria P = NP).</li>
+        <li>Semelhantes <em>NP-difíceis</em>: Closest String, Shortest Common Superstring, alinhamento múltiplo, busca aproximada com restrições.</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- 20 · CONCLUSÃO -->
+  <section class="slide center bg" style="--img:url('assets/b6-hero-conceitual.png')">
+    <div class="wrap"><div class="panel">
+      <p class="kicker">Conclusão</p>
+      <h2 style="font-size:clamp(1.7rem,3.6vw,2.3rem);margin-bottom:.5em">As medições confirmam a teoria.</h2>
+      <ul>
+        <li>Melhor ≈ médio (<strong>Θ(n+m)</strong>); pior acima, em O(n·m) (com m=16, quase linear em n).</li>
+        <li>C e Python concordam na lógica e nas ocorrências; diferem só na <strong>constante</strong> (até 180×).</li>
+        <li>Força do RK: <em>caso médio = melhor caso</em>. Fraqueza: o pior caso.</li>
+      </ul>
+      <div class="meta"><span class="prof" style="border:none;padding:0">github.com/ricardomvlins/rabin_karp</span></div>
+    </div></div>
+  </section>
+
+  <!-- 21 · FINAL -->
+  <section class="slide center bg" style="--img:url('assets/b1-background-titulo.png')">
+    <div class="wrap"><div class="panel">
+      <p class="kicker">Fim</p>
+      <h1 style="font-size:clamp(2.6rem,6vw,3.6rem)">Obrigado!</h1>
+      <p class="subtitle">Perguntas?</p>
+      <div class="meta">
+        <span class="name">Artur Antunes</span>
+        <span class="name">Ricardo Machado</span>
+        <span class="name">Victor Tien</span>
+        <span class="prof">github.com/ricardomvlins/rabin_karp</span>
+      </div>
+    </div></div>
+  </section>
+
+</div>
+
+<button class="nav prev" aria-label="Anterior">‹</button>
+<button class="nav next" aria-label="Próximo">›</button>
+<div class="counter">1 / 21</div>
+<div class="chrome"><span class="b">RABIN–KARP</span><span class="dot"></span><span>Teoria da Computação</span></div>
+<div class="hint">← → para navegar · F tela cheia</div>
+
+<script>
+/* ============ dados reais (médias, em milissegundos) ============ */
+const N = [2000, 20000, 100000];
+const MS = {
+  c:      { melhor:[0.0260,0.2600,1.3516], medio:[0.0265,0.3002,1.3770], pior:[0.0401,0.3807,1.6777] },
+  python: { melhor:[1.3511,12.5681,74.8453], medio:[1.5656,12.5102,59.7103], pior:[5.5458,60.4142,302.3866] }
+};
+const SPEEDUP = { melhor:[52,48,55], medio:[59,42,43], pior:[138,159,180] };
+const COL = { melhor:'#5ad17a', medio:'#57d6e6', pior:'#ff6b5e' };
+const LAB = { melhor:'Melhor', medio:'Médio', pior:'Pior' };
+const NS = 'http://www.w3.org/2000/svg';
+const el = (t,a)=>{const e=document.createElementNS(NS,t);for(const k in a)e.setAttribute(k,a[k]);return e;};
+const txt = (x,y,s,a={})=>{const e=el('text',Object.assign({x,y},a));e.textContent=s;return e;};
+const decadeLabel = d => ({'-2':'0,01','-1':'0,1','0':'1','1':'10','2':'100','3':'1.000'})[d];
+const nLabel = n => n.toLocaleString('pt-BR');
+
+/* ============ gráfico de linhas em escala log–log ============ */
+function lineChartLog(id, series, yDec){
+  const svg = document.getElementById(id);
+  const W=900,H=470,L=78,R=150,T=24,B=58;
+  const xs = N.map(Math.log10), xmin=Math.min(...xs), xmax=Math.max(...xs);
+  const X = v => L + (Math.log10(v)-xmin)/(xmax-xmin)*(W-L-R);
+  const ymin=Math.min(...yDec), ymax=Math.max(...yDec);
+  const Y = ms => (H-B) - (Math.log10(ms)-ymin)/(ymax-ymin)*(H-B-T);
+  const g = el('g',{});
+  // y gridlines + labels
+  yDec.forEach(d=>{
+    const y=Y(Math.pow(10,d));
+    g.appendChild(el('line',{x1:L,y1:y,x2:W-R,y2:y,stroke:'rgba(255,255,255,.08)','stroke-width':1}));
+    g.appendChild(txt(L-10,y+4,decadeLabel(d),{fill:'#939db2','font-family':'JetBrains Mono,monospace','font-size':13,'text-anchor':'end'}));
+  });
+  // x ticks + labels
+  N.forEach(n=>{
+    const x=X(n);
+    g.appendChild(el('line',{x1:x,y1:H-B,x2:x,y2:H-B+6,stroke:'#939db2','stroke-width':1}));
+    g.appendChild(txt(x,H-B+24,nLabel(n),{fill:'#eaeef5','font-family':'JetBrains Mono,monospace','font-size':13,'text-anchor':'middle'}));
+  });
+  // axes
+  g.appendChild(el('line',{x1:L,y1:T,x2:L,y2:H-B,stroke:'rgba(255,255,255,.25)','stroke-width':1}));
+  g.appendChild(el('line',{x1:L,y1:H-B,x2:W-R,y2:H-B,stroke:'rgba(255,255,255,.25)','stroke-width':1}));
+  g.appendChild(txt(W-R+14,(T+(H-B))/2,'tempo médio (ms)',{fill:'#939db2','font-family':'JetBrains Mono,monospace','font-size':12,'text-anchor':'middle',transform:`rotate(90 ${W-R+14} ${(T+(H-B))/2})`}));
+  g.appendChild(txt((L+W-R)/2,H-10,'tamanho da entrada (n)',{fill:'#939db2','font-family':'JetBrains Mono,monospace','font-size':12,'text-anchor':'middle'}));
+  // series
+  let ly=T+8;
+  series.forEach(s=>{
+    const pts=s.data.map((ms,i)=>[X(N[i]),Y(ms)]);
+    const d=pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ');
+    const path=el('path',{d,fill:'none',stroke:s.color,'stroke-width':2.5,'stroke-linejoin':'round'});
+    if(s.dash) path.setAttribute('stroke-dasharray','7 5');
+    g.appendChild(path);
+    pts.forEach(p=>{
+      if(s.hollow){ g.appendChild(el('circle',{cx:p[0],cy:p[1],r:4.5,fill:'#0a0d13',stroke:s.color,'stroke-width':2})); }
+      else { g.appendChild(el('circle',{cx:p[0],cy:p[1],r:4.5,fill:s.color})); }
+    });
+    // legend
+    g.appendChild(el('line',{x1:W-R+18,y1:ly,x2:W-R+44,y2:ly,stroke:s.color,'stroke-width':3,'stroke-dasharray':s.dash?'7 5':'0'}));
+    g.appendChild(txt(W-R+50,ly+4,s.name,{fill:'#eaeef5','font-family':'JetBrains Mono,monospace','font-size':12.5}));
+    ly+=22;
+  });
+  svg.appendChild(g);
+}
+
+/* ============ gráfico de barras (speedup) ============ */
+function barChart(id){
+  const svg=document.getElementById(id);
+  const W=900,H=470,L=64,R=24,T=28,B=70;
+  const ymax=200;
+  const Y=v=>(H-B)-v/ymax*(H-B-T);
+  const g=el('g',{});
+  // y grid
+  for(let v=0;v<=200;v+=50){
+    const y=Y(v);
+    g.appendChild(el('line',{x1:L,y1:y,x2:W-R,y2:y,stroke:'rgba(255,255,255,.08)','stroke-width':1}));
+    g.appendChild(txt(L-10,y+4,v+'×',{fill:'#939db2','font-family':'JetBrains Mono,monospace','font-size':13,'text-anchor':'end'}));
+  }
+  const cases=['melhor','medio','pior'];
+  const groupW=(W-L-R)/cases.length;
+  const bw=groupW/ (N.length+1.4);
+  cases.forEach((c,ci)=>{
+    const gx=L+ci*groupW;
+    SPEEDUP[c].forEach((v,i)=>{
+      const x=gx+groupW*0.16+i*bw*1.12;
+      const y=Y(v), h=(H-B)-y;
+      g.appendChild(el('rect',{x,y,width:bw,height:h,rx:4,fill:COL[c],opacity:0.55+i*0.22}));
+      g.appendChild(txt(x+bw/2,y-7,v+'×',{fill:'#eaeef5','font-family':'JetBrains Mono,monospace','font-size':12,'text-anchor':'middle','font-weight':700}));
+    });
+    g.appendChild(txt(gx+groupW/2,H-B+26,LAB[c]+' caso',{fill:'#fff','font-family':'Bricolage Grotesque,sans-serif','font-size':15,'text-anchor':'middle','font-weight':700}));
+  });
+  // axis
+  g.appendChild(el('line',{x1:L,y1:T,x2:L,y2:H-B,stroke:'rgba(255,255,255,.25)','stroke-width':1}));
+  g.appendChild(el('line',{x1:L,y1:H-B,x2:W-R,y2:H-B,stroke:'rgba(255,255,255,.25)','stroke-width':1}));
+  // legenda n
+  const leg=['n = 2.000','n = 20.000','n = 100.000'];
+  leg.forEach((s,i)=>{
+    const lx=L+8+i*150;
+    g.appendChild(el('rect',{x:lx,y:T-12,width:14,height:14,rx:3,fill:'#8893a8',opacity:0.55+i*0.22}));
+    g.appendChild(txt(lx+20,T-1,s,{fill:'#939db2','font-family':'JetBrains Mono,monospace','font-size':12}));
+  });
+  svg.appendChild(g);
+}
+
+/* ============ render ============ */
+function renderCharts(){
+  if(document.getElementById('chart-python').childNodes.length) return;
+  lineChartLog('chart-python',[
+    {name:'Pior',  color:COL.pior,  data:MS.python.pior},
+    {name:'Médio', color:COL.medio, data:MS.python.medio},
+    {name:'Melhor',color:COL.melhor,data:MS.python.melhor}
+  ],[0,1,2,3]);
+  lineChartLog('chart-c',[
+    {name:'Pior',  color:COL.pior,  data:MS.c.pior},
+    {name:'Médio', color:COL.medio, data:MS.c.medio},
+    {name:'Melhor',color:COL.melhor,data:MS.c.melhor}
+  ],[-2,-1,0,1]);
+  lineChartLog('chart-all',[
+    {name:'Py · pior',  color:COL.pior,  data:MS.python.pior,  dash:true,  hollow:true},
+    {name:'Py · médio', color:COL.medio, data:MS.python.medio, dash:true,  hollow:true},
+    {name:'Py · melhor',color:COL.melhor,data:MS.python.melhor,dash:true,  hollow:true},
+    {name:'C · pior',   color:COL.pior,  data:MS.c.pior},
+    {name:'C · médio',  color:COL.medio, data:MS.c.medio},
+    {name:'C · melhor', color:COL.melhor,data:MS.c.melhor}
+  ],[-2,-1,0,1,2,3]);
+  // rótulos das faixas no gráfico combinado
+  const all=document.getElementById('chart-all');
+  all.appendChild(txt(250,70,'PYTHON',{fill:'rgba(87,214,230,.35)','font-family':'Bricolage Grotesque,sans-serif','font-size':30,'font-weight':800}));
+  all.appendChild(txt(300,330,'C',{fill:'rgba(196,242,63,.30)','font-family':'Bricolage Grotesque,sans-serif','font-size':30,'font-weight':800}));
+  barChart('chart-speedup');
+}
+
+/* ============ motor de slides ============ */
+const slides=[...document.querySelectorAll('.slide')];
+const fill=document.querySelector('.bar>i');
+const counter=document.querySelector('.counter');
+let i=0;
+function show(n){
+  i=Math.max(0,Math.min(slides.length-1,n));
+  slides.forEach((s,k)=>s.classList.toggle('active',k===i));
+  fill.style.transform='scaleX('+(i/(slides.length-1))+')';
+  counter.textContent=(i+1)+' / '+slides.length;
+  if(history.replaceState) history.replaceState(null,'','#'+(i+1));
+}
+const next=()=>show(i+1), prev=()=>show(i-1);
+document.addEventListener('keydown',e=>{
+  const k=e.key;
+  if(k==='ArrowRight'||k==='PageDown'||k===' '){e.preventDefault();next();}
+  else if(k==='ArrowLeft'||k==='PageUp'){e.preventDefault();prev();}
+  else if(k==='Home'){show(0);} else if(k==='End'){show(slides.length-1);}
+  else if(k==='f'||k==='F'){ if(!document.fullscreenElement)document.documentElement.requestFullscreen&&document.documentElement.requestFullscreen(); else document.exitFullscreen&&document.exitFullscreen(); }
+});
+document.querySelector('.nav.next').addEventListener('click',next);
+document.querySelector('.nav.prev').addEventListener('click',prev);
+window.addEventListener('hashchange',()=>{const h=parseInt(location.hash.replace('#',''));if(h&&h-1!==i)show(h-1);});
+renderCharts();
+show((parseInt(location.hash.replace('#',''))||1)-1);
+</script>
+</body>
+</html>
