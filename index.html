@@ -171,6 +171,7 @@ tr .em{color:var(--red);font-weight:700}
         <span class="name">Artur Antunes</span>
         <span class="name">Ricardo Machado</span>
         <span class="name">Victor Tien</span>
+        <span class="name">Luca Albuquerque</span>
         <span class="prof">Prof. Daniel Bezerra · Jun/2026</span>
       </div>
     </div>
@@ -248,16 +249,7 @@ tr .em{color:var(--red);font-weight:700}
     </div>
   </section>
 
-  <!-- 7 · FLUXO -->
-  <section class="slide">
-    <div class="wrap">
-      <p class="kicker">Fluxo</p>
-      <h2>O algoritmo em um diagrama</h2>
-      <img class="art" src="assets/a2-fluxograma-exato.svg" alt="Fluxograma do Rabin-Karp" style="background:#0a0d13;max-height:50vh">
-    </div>
-  </section>
-
-  <!-- 8 · PSEUDOCÓDIGO -->
+  <!-- PSEUDOCÓDIGO -->
   <section class="slide">
     <div class="wrap">
       <p class="kicker">01 · Pseudocódigo</p>
@@ -296,31 +288,7 @@ tr .em{color:var(--red);font-weight:700}
     </div>
   </section>
 
-  <!-- 10 · ANÁLISE DE CASOS -->
-  <section class="slide">
-    <div class="wrap">
-      <p class="kicker">06 · Análise de casos</p>
-      <h2>Melhor, médio e pior</h2>
-      <div class="cards">
-        <div class="card c-best"><div class="ct">Melhor caso</div><div class="big">Θ(n+m)</div><div class="ds">T="aaa…", P="bbb…" — hash quase nunca coincide; 0 verificações.</div></div>
-        <div class="card c-avg"><div class="ct">Caso médio</div><div class="big">Θ(n+m)</div><div class="ds">Entrada aleatória — colisões ≈ 0. <em>Coincide com o melhor caso.</em></div></div>
-        <div class="card c-worst"><div class="ct">Pior caso</div><div class="big">O(n·m)</div><div class="ds">T="aaa…", P="aaa…" — toda janela exige verificação completa.</div></div>
-      </div>
-      <p class="small">A força do Rabin&ndash;Karp é o <strong>caso médio coincidir com o melhor</strong>; a fraqueza é o pior caso, quando colisões/repetições forçam a verificação em toda janela.</p>
-    </div>
-  </section>
-
-  <!-- 11 · LINEAR × QUADRÁTICO -->
-  <section class="slide">
-    <div class="wrap">
-      <p class="kicker">As duas classes</p>
-      <h2>Linear × quadrático</h2>
-      <img class="art" src="assets/a6-curvas-complexidade.png" alt="Curvas Theta(n) e Theta(n ao quadrado)">
-      <p class="cap">Θ(n+m) cresce linear; o limite O(n·m) vira <em>Θ(n²)</em> quando m ∝ n. Neste experimento <strong>m = 16</strong> (fixo) → observamos o regime linear.</p>
-    </div>
-  </section>
-
-  <!-- 12 · APLICABILIDADE -->
+  <!-- APLICABILIDADE -->
   <section class="slide">
     <div class="wrap">
       <p class="kicker">03 · Aplicabilidade</p>
@@ -439,7 +407,21 @@ tr .em{color:var(--red);font-weight:700}
     </div>
   </section>
 
-  <!-- 21 · REFLEXÃO P/NP -->
+  <!-- ANÁLISE DE CASOS -->
+  <section class="slide">
+    <div class="wrap">
+      <p class="kicker">06 · Análise de casos</p>
+      <h2>Melhor, médio e pior</h2>
+      <div class="cards">
+        <div class="card c-best"><div class="ct">Melhor caso</div><div class="big">Θ(n+m)</div><div class="ds">T="aaa…", P="bbb…" — hash quase nunca coincide; 0 verificações.</div></div>
+        <div class="card c-avg"><div class="ct">Caso médio</div><div class="big">Θ(n+m)</div><div class="ds">Entrada aleatória — colisões ≈ 0. <em>Coincide com o melhor caso.</em></div></div>
+        <div class="card c-worst"><div class="ct">Pior caso</div><div class="big">O(n·m)</div><div class="ds">T="aaa…", P="aaa…" — toda janela exige verificação completa.</div></div>
+      </div>
+      <p class="small">A força do Rabin&ndash;Karp é o <strong>caso médio coincidir com o melhor</strong>; a fraqueza é o pior caso, quando colisões/repetições forçam a verificação em toda janela.</p>
+    </div>
+  </section>
+
+  <!-- REFLEXÃO P/NP -->
   <section class="slide">
     <div class="wrap">
       <p class="kicker">07 · Reflexão final</p>
@@ -495,6 +477,7 @@ tr .em{color:var(--red);font-weight:700}
         <span class="name">Artur Antunes</span>
         <span class="name">Ricardo Machado</span>
         <span class="name">Victor Tien</span>
+        <span class="name">Luca Albuquerque</span>
         <span class="prof">github.com/ricardomvlins/rabin_karp</span>
       </div>
     </div></div>
@@ -504,7 +487,7 @@ tr .em{color:var(--red);font-weight:700}
 
 <button class="nav prev" aria-label="Anterior">‹</button>
 <button class="nav next" aria-label="Próximo">›</button>
-<div class="counter">1 / 24</div>
+<div class="counter">1 / 22</div>
 <div class="chrome"><span class="b">RABIN–KARP</span><span class="dot"></span><span>Teoria da Computação</span></div>
 <div class="hint">← → para navegar · F tela cheia</div>
 
